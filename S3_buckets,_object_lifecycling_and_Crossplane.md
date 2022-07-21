@@ -93,7 +93,7 @@ While replication might not seem belong to data lifecycling, it there are good r
 
 Reference: [AWS S3 Replicating objects](https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html)
 
-The AWS documentation suggests possible reasons for replication might be legal or compliance requirements for storage of data at multiple geographical sites or in multiple AWS accounts (objects can be replicated automatically to different storage classes in buckets in different accounts as well as in different regions). A more practical reason might be for cross-regional disaster recovery, where data is replicated to a secondary region in near real-time then removed a short time later using lifecycling rules to limit costs related to storing multiple copies of data unnecessarily. 
+The AWS documentation suggests possible reasons for replication might be legal or compliance requirements for storage of data at multiple geographical sites or in multiple AWS accounts (objects can be replicated automatically to different storage classes in buckets in different accounts as well as in different regions) and lifecycled to lower cost storage classes. A more practical reason might be for cross-regional disaster recovery, where data is replicated to a secondary region in near real-time then removed a short time later using lifecycling rules to limit costs related to storing multiple copies of data unnecessarily. 
 
 #### Replication and Crossplane
 
