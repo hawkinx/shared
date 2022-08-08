@@ -2,7 +2,7 @@
 
 #### S3 is not just object storage, it includes fairly sophisticated storage lifecycling functions to manage data transition between storage classes
 
-There are multiple storage classes available, ranging from standard S3 with the highest cost, through various classes with combinations of less frequent access, longer latency and retrieval times, and single zone storage, optimised for various use cases. AWS sometimes describe this in terms of 'hot' versus 'cold' storage. Typical use cases would be *S3 One Zone* single zone storage for high volume non-critical data and *S3 Glacier Deep Archive* for data required to be archived for compliance reasons but typically never accessed again - with a retrieval time measured in hours it is probably not suitable for disaster recovery. Expiration and deletion of objects can also be managed as part of storage lifecycling.
+There are multiple storage classes available, ranging from standard S3 with the highest cost, through various classes with combinations of less frequent access, longer latency and retrieval times, and single zone storage, optimised for various use cases. AWS sometimes describe this in terms of 'hot' versus 'cold' storage. Common use cases would be *S3 One Zone* single zone storage for high volume non-critical data and *S3 Glacier Deep Archive* for data required to be archived for compliance reasons but typically never accessed again - with a retrieval time measured in hours it is probably not suitable for disaster recovery. Expiration and deletion of objects can also be managed as part of storage lifecycling.
 
 There is also an option - *S3 Intelligent-Tiering* - where for a monthly fee objects that have not been accessed after predefined time intervals are moved to lower cost storage tiers. If accessed, objects are returned to the standard storage tier where the countdown restarts.
 
@@ -48,7 +48,7 @@ Example manifest file for a lifecycle configuration proof-of-concept bucket; the
 ```
 # Proof-of-concept/demo manifest file for Crossplane AWS S3
 # Can be verified using the command
-#   aws s3api get-bucket-lifecycle-configuration --bucket bucket-name-that-is-unique
+#   aws s3api get-bucket-lifecycle-configuration --bucket bucket-name-that-is-globally-unique
 ---
 apiVersion: s3.aws.crossplane.io/v1beta1
 kind: Bucket
@@ -56,7 +56,7 @@ metadata:
   name: testbucket
   namespace: default
   annotations:
-    crossplane.io/external-name: bucket-name-that-is-unique
+    crossplane.io/external-name: bucket-name-that-is-globally-unique
 spec:
   deletionPolicy: Delete
   forProvider:
@@ -89,7 +89,7 @@ spec:
 
 ## S3 buckets, lifecycling and replication
 
-While replication might not seem belong to data lifecycling, it there are good reasons to mention it in this context.
+While replication might not seem belong to data lifecycling, it is appropriate to mention it in this context as there are use cases that combine lifecycling and replication.
 
 Reference: [AWS S3 Replicating objects](https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html)
 
