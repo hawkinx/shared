@@ -1,0 +1,25 @@
+---
+# ElastiCache Redis subnet group configuration using Crossplane
+# Tested using provider-aws v0.32.0
+---
+# Subnet group for ElastiCache
+---
+apiVersion: cache.aws.crossplane.io/v1alpha1
+kind: CacheSubnetGroup
+metadata:
+  name: subnet-group
+spec:
+  forProvider:
+    region: eu-north-1
+    description: Description mandatory
+    # Hardcoded values for private subnets in existing VPC; best if these can be handled as references
+    subnetIds:
+      - subnet-08d58a26a4114b0be
+      - subnet-0fcc37a319c69941e
+      - subnet-057ce38b5f58f8e5c
+    # subnetIdRefs:   
+    #   - name:
+    #   - name:
+    #   - name:
+  providerConfigRef:
+    name: provider-aws

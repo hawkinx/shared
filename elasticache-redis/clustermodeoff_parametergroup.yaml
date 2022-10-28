@@ -1,0 +1,26 @@
+---
+# ElastiCache Redis parameter group with cluster mode disabled
+# Tested using provider-aws v0.32.0
+---
+
+---
+# Parameter group needed as default 
+apiVersion: elasticache.aws.crossplane.io/v1alpha1
+kind: CacheParameterGroup
+metadata:
+  name: clustermode-off
+spec:
+  forProvider:
+    region: eu-north-1
+    cacheParameterGroupFamily: redis6.x
+    description: "Parameter maxmemory-policy set to safe value allkeys-lru and cluster mode disabled"
+    # Set eviction policy to remove least recently used (LRU) keys; default value is unsafe unless expire field is set in keys
+    # maxmemory-policy => allkeys-lru
+    # The second value cluster-enabled sets whether or not the cluster mode is enabled for the instance
+    parameters:
+      - parameterName: maxmemory-policy
+        parameterValue: allkeys-lru
+      - parameterName: cluster-enabled
+        parameterValue: "no"
+  providerConfigRef:
+    name: provider-aws

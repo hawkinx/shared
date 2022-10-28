@@ -1,0 +1,37 @@
+# Security group for ElastiCache/redis
+# For access from within the same VPC
+# vpcId is hardcoded here; must be changed
+# CIDR for ingress probably needs changing also
+---
+apiVersion: ec2.aws.crossplane.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: elasticache-redis
+spec:
+  forProvider:
+    region: eu-north-1
+    vpcId: vpc-012ef914f45700ab7
+    # Following method of choosing VPC is better, but appears to need a VPC created by crossplane
+    # vpcIdRef:
+    #   name: vpc-created-by-crossplane
+    groupName: elasticache-redis
+    description: Enable Redis/ElastiCache access within the local VPC
+    tags:
+      - key: Name
+        value: elasticache-redis
+    # Is an egress needed? Test disabling it
+    # egress:
+    #   # AWS will treat it as all ports any protocol
+    #   - ipProtocol: '-1'
+    #     ipRanges:
+    #       - cidrIp: 0.0.0.0/0
+    ingress:
+      - fromPort: 6379
+        ipProtocol: tcp
+        # For access within the same VPC use the CIDR of that VPC
+        ipRanges:
+          - cidrIp: 192.168.0.0/16
+        toPort: 6379
+  providerConfigRef:
+    name: provider-aws
+---

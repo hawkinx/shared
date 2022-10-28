@@ -1,0 +1,36 @@
+---
+# Elasticache Redis with cluster mode disabled
+# This configuration provisions a single node only 
+---
+apiVersion: cache.aws.crossplane.io/v1beta1
+kind: ReplicationGroup
+metadata:
+  name: redis-clustermode-off
+  labels:
+    clustermode: "off"
+spec:
+  deletionPolicy: Delete
+  forProvider:
+    region: eu-north-1
+    replicationGroupDescription: "Cluster mode disabled"
+    applyModificationsImmediately: true
+    engine: "redis"
+    engineVersion: "6.2"
+    port: 6379
+    cacheSubnetGroupNameRef:
+      name: subnet-group
+    cacheParameterGroupName: clustermode-off
+    cacheNodeType: cache.t3.micro
+    automaticFailoverEnabled: false
+    multiAZEnabled: false
+    # Number of shards; default = 1 when cluster mode not enabled
+    numNodeGroups: 1
+    securityGroupIdRefs:
+      - name: elasticache-redis
+    # securityGroupIds:
+    #   - sg-06724db1c96051880
+  writeConnectionSecretToRef:
+    name: redis-clustermode-off
+    namespace: crossplane-system
+  providerConfigRef:
+    name: provider-aws
