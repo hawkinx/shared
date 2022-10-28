@@ -37,7 +37,7 @@ The AWS default is unsafe as it requires a TTL value to be set by the applicatio
 
 For access within a VPC, an inbound rule with the port for Redis (default 6379) and the CIDR of the is the same as that of the VPC itself is needed. A VPC created by eksctl using the default settings ends up with the CIDR block 192.168.0.0/16 so port range = 6379 and source = 192.168.0.0/16. My example manifest for the security group uses these values.
 
-AWS suggest that a CIDR value of 0.0.0.0/0 (access from anywhere) be used as in this situation as the Elasticache cluster does not have any public IP address in any case, but I find this a little disturbing.
+AWS suggest that a CIDR value of 0.0.0.0/0 (access from anywhere) be used as in this situation as the Elasticache cluster does not have any public IP address, but I find this a little disturbing.
 
 I haven’t tested access from outside of the VPC; information about this is provided by AWS:
 
@@ -45,7 +45,7 @@ I haven’t tested access from outside of the VPC; information about this is pro
 
 ## Redis client for testing access
 
-There is a command line Redis client that can be used for various things, including testing access. A simple one-liner to install the client on an EC2 instance is:
+There is a command line Redis client that can be used for various things, including testing access. A simple one-liner to install the client on an EC2 running Amazon Linux instance is:
 
 `sudo amazon-linux-extras install epel -y && sudo yum update -y && sudo yum install redis -y`
 
@@ -84,9 +84,9 @@ Some components are prerequisites to other components so order of deployment can
 
 ### Example Crossplane manifests
 
-The VPC and subnets are taken as given, mainly because I didn't use Crossplane to deploy them for my test environment, but anybody using the information given in this document will most likely know multiple ways or provisioning VPCs in any case.
+The VPC and subnets are taken as given, mainly because I didn't use Crossplane to deploy them for my test environment, but anybody using the information given in this document will most likely know multiple ways of provisioning VPCs in any case.
 
-These are basically the manifest files I ended up with once I'd got provisioning to work the way I wanted; they have been cleaned up a little and verified. They most will need editing to work in another environment, even if you use the same AWS region as I did (`eu-north-1`).
+These are basically the manifest files I ended up with once I'd got provisioning to work the way I wanted; they have been cleaned up a little and verified. Most will need editing to work in another environment even if you use the same AWS region as I did (`eu-north-1`).
 
 There are too many lines to include all the manifests in this markdown document so the manifest files are distributed separately and linked to from this document.
 
