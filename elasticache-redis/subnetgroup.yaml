@@ -2,8 +2,6 @@
 # ElastiCache Redis subnet group configuration using Crossplane
 # Tested using provider-aws v0.32.0
 ---
-# Subnet group for ElastiCache
----
 apiVersion: cache.aws.crossplane.io/v1alpha1
 kind: CacheSubnetGroup
 metadata:

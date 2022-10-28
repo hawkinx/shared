@@ -2,9 +2,6 @@
 # ElastiCache Redis parameter group with cluster mode enabled
 # Tested using provider-aws v0.32.0
 ---
-
----
-# Parameter group needed as default 
 apiVersion: elasticache.aws.crossplane.io/v1alpha1
 kind: CacheParameterGroup
 metadata:

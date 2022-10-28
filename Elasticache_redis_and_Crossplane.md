@@ -53,7 +53,7 @@ To check that it has been installed
 
 `redis-cli -v`
 
-To verify access, deploy an EC2 instance in the same VPC (the example security group allows access from with the same VPC), install the Redis client as above and run the following command using the redis endpoint that is saved in the Kubernetes secret defined by the value of writeConnectionSecretToRef: in the manifest file.
+To verify access, deploy an EC2 instance in the same VPC (the example security group allows access from within the same VPC), install the Redis client as above and run the following command using the redis endpoint that is saved in the Kubernetes secret defined by the value of `writeConnectionSecretToRef:` in the manifest file.
 
 `redis-cli -h <endpoint> ping`
 
@@ -63,7 +63,7 @@ To verify access in a non-production environment, the quickest is just to start 
 
 ## Putting it together
 
-The examples below have been deployed both in the same VPC that the EKS cluster that I have Crossplane on (the VPC + EKS cluster were created using eksctl and Crossplane deployed using Helm) was running on and in the default VPC for the AWS region. The components not deployed using Crossplane needed to be referenced using their AWS IDs; other components could be referenced by name. Don't regard my formatting and configuration as the only correct way of doing this; use whatever works for you.
+The examples below have been deployed both in the same VPC that the EKS cluster that I have Crossplane on (the VPC + EKS cluster were created using `eksctl` and Crossplane deployed using Helm) was running on and in the default VPC for the AWS region. The components not deployed using Crossplane needed to be referenced using their AWS IDs; other components could be referenced by name. Don't regard my formatting and configuration as the only correct way of doing this; use whatever works for you.
 
 ### Components/Steps
 
@@ -75,7 +75,7 @@ The examples below have been deployed both in the same VPC that the EKS cluster 
 
 ### Provisioning
 
-Some components are prerequisites to other components so order of deployment is important.
+Some components are prerequisites to other components so order of deployment can be important.
 
 - Step 1 can be provisioned at any point before step 5
 - Step 2 provisioning the VPC and associated subnets must be done before steps 3 and 4
@@ -84,7 +84,7 @@ Some components are prerequisites to other components so order of deployment is 
 
 ### Example Crossplane manifests
 
-The VPC and subnets are taken as given, mainly because I didn't use Crossplane to deploy them for my test environment but anybody using the information given in this document will most likely know multiple ways or provisioning VPCs in any case.
+The VPC and subnets are taken as given, mainly because I didn't use Crossplane to deploy them for my test environment, but anybody using the information given in this document will most likely know multiple ways or provisioning VPCs in any case.
 
 These are basically the manifest files I ended up with once I'd got provisioning to work the way I wanted; they have been cleaned up a little and verified. They most will need editing to work in another environment, even if you use the same AWS region as I did (`eu-north-1`).
 
@@ -122,6 +122,6 @@ Endpoint for the above instance is in the secret `redis-clustermode-off` in the 
 
 [Redis instance with cluster mode enabled](/elasticache-redis/clustermodeon_replicationgroup.yaml)
 
-And for this instance in the secret redis-clustermode-on` in the namespace `crossplane-system`
+And for this instance in the secret `redis-clustermode-on` in the namespace `crossplane-system`
 
 
