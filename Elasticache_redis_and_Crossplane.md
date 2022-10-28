@@ -53,25 +53,25 @@ To check that it has been installed
 
 `redis-cli -v`
 
-To verify access, deploy an EC2 instance in the same VPC (simplest), install the Redis client as above and run the following command using the redis endpoint that is saved in the Kubernetes secret defined by the value of writeConnectionSecretToRef: in the manifest file.
+To verify access, deploy an EC2 instance in the same VPC (the example security group allows access from with the same VPC), install the Redis client as above and run the following command using the redis endpoint that is saved in the Kubernetes secret defined by the value of writeConnectionSecretToRef: in the manifest file.
 
 `redis-cli -h <endpoint> ping`
 
 `redis-cli -h redis-cluster-mode-off.8ym5s5.ng.0001.eun1.cache.amazonaws.com ping`
 
-To verify access in a non-production environment, the quickest is just to start a terminal session on one of the EKS node using the AWS SSM Fleet manager, install the Redis cli client as above and check access.
+To verify access in a non-production environment, the quickest is just to start a terminal session on one of the EKS nodes using the AWS SSM Fleet manager, install the Redis cli client as above and check access.
 
 ## Putting it together
 
-The examples below have been deployed both in the same VPC that the EKS cluster that I have Crossplane on (the VPC + EKS cluster were created using eksctl and Crossplane deployed using Helm) was running on and in the default VPC for the AWS region. The components not deployed using Crossplane needed to be referenced using their AWS IDs; other components could be referenced by name. Don't in any case regard my formatting and configuration as the only correct way of doing this; use whatever works for you.
+The examples below have been deployed both in the same VPC that the EKS cluster that I have Crossplane on (the VPC + EKS cluster were created using eksctl and Crossplane deployed using Helm) was running on and in the default VPC for the AWS region. The components not deployed using Crossplane needed to be referenced using their AWS IDs; other components could be referenced by name. Don't regard my formatting and configuration as the only correct way of doing this; use whatever works for you.
 
 ### Components/Steps
 
 1. Parameter group, with cluster mode set either off or on
 2. VPC and subnets
-3. Redis subnet group, defined to use subnets within the VPC
-4. Security group allowing access to the Redis port from within the VPC
-5. Redis instance, defined according to whether cluster mode is on or off
+3. Security group allowing access to the Redis port from within the VPC
+4. Redis subnet group, defined to use subnets within the VPC
+5. Redis instance, configured according to whether cluster mode is on or off
 
 ### Provisioning
 
@@ -86,7 +86,7 @@ Some components are prerequisites to other components so order of deployment is 
 
 The VPC and subnets are taken as given, mainly because I didn't use Crossplane to deploy them for my test environment but anybody using the information given in this document will most likely know multiple ways or provisioning VPCs in any case.
 
-These are basically the manifest files I ended up with once I'd got provisioning to work the way I wanted; they have been cleaned up a little and any changes have been verified. They will most likely need editing to work in another environment, even if you use the same AWS region as I did (`eu-north-1`).
+These are basically the manifest files I ended up with once I'd got provisioning to work the way I wanted; they have been cleaned up a little and verified. They most will need editing to work in another environment, even if you use the same AWS region as I did (`eu-north-1`).
 
 There are too many lines to include all the manifests in this markdown document so the manifest files are distributed separately and linked to from this document.
 
@@ -100,18 +100,28 @@ There are too many lines to include all the manifests in this markdown document 
 
 You fix this yourself
 
-#### 3 Elasticache subnet group
+#### 3 Security group
 
-[Subnet group for both cluster modes](/elasticache-redis/subnetgroup.yaml)
-
-#### 4 Security group
+Requires a VPC; needs updating with that VPC's identity
 
 [Security group for both cluster nodes](/elasticache-redis/securitygroup.yaml)
 
+#### 4 Elasticache subnet group
+
+Requires subnets in the VPC from previous step and updating with the subnet details
+
+[Subnet group for both cluster modes](/elasticache-redis/subnetgroup.yaml)
+
 #### 5 Elasticache/Redis instances
+
+Both use t3.micro nodes; one node where cluster mode is disabled and two for the other
 
 [Redis instance with cluster mode disabled](/elasticache-redis/clustermodeoff_replicationgroup.yaml)
 
+Endpoint for the above instance is in the secret `redis-clustermode-off` in the namespace `crossplane-system`
+
 [Redis instance with cluster mode enabled](/elasticache-redis/clustermodeon_replicationgroup.yaml)
+
+And for this instance in the secret redis-clustermode-on` in the namespace `crossplane-system`
 
 
