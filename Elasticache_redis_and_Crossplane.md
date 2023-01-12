@@ -33,6 +33,11 @@ Reference: [Redis - Key eviction](https://redis.io/docs/manual/eviction/)
 
 The AWS default is unsafe as it requires a TTL value to be set by the application; if this is not the case the cache will fill up and no longer provide caching. This happened in production to an application I was supporting and the solution was to create a new parameter group where the TTL value was ignored, then the least recently accessed keys are evicted once the cache is full regardless of TTL. The other options that are available are described in the reference; the best setting for a given application depends on the workload.
 
+### IAM access management
+Since writing this document, Amazon have added IAM support for managing access to ElastiCache Redis. This has not been tested by me, but I would expect that it works as described:
+
+[Simplify managing access to Amazon ElastiCache for Redis clusters with IAM](https://aws.amazon.com/blogs/database/simplify-managing-access-to-amazon-elasticache-for-redis-clusters-with-iam/)
+
 ### Security groups
 
 For access within a VPC, an inbound rule with the port for Redis (default 6379) and the CIDR of the is the same as that of the VPC itself is needed. A VPC created by eksctl using the default settings ends up with the CIDR block 192.168.0.0/16 so port range = 6379 and source = 192.168.0.0/16. My example manifest for the security group uses these values.
@@ -123,5 +128,3 @@ Endpoint for the above instance is in the secret `redis-clustermode-off` in the 
 [Redis instance with cluster mode enabled](/elasticache-redis/clustermodeon_replicationgroup.yaml)
 
 And for this instance in the secret `redis-clustermode-on` in the namespace `crossplane-system`
-
-
