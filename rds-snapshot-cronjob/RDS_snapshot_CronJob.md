@@ -8,7 +8,7 @@ The default automated AWS snapshot solution is a bit restricted – you are limi
 
 ### Python scripts and manual snapshots
 
-Using Python and the boto3 library it is fairly straight forward to deal with snapshot management. In the past I have done this using Lambda scripts, but handing maintenance of these over to colleagues when I left that project turned out to be a bit of an problem. They had better AWS certifications that I had, but presumably due to a lack of coding experience, their eyes basically just glazed over when we went through my code and documentation. There is less Python code involved with the CronJobs in this solution and the script structure is much more similar to that of shell scripts, so should be easier to understand for sysadmins in general.
+Using Python and the boto3 library it is fairly straight forward to deal with snapshot management. In the past I have done this using Lambda scripts, but handing maintenance of these over to colleagues when I left that particular project turned out to be a bit of an problem. They had better AWS certifications that I had, but presumably due to a lack of coding experience their eyes basically just glazed over when we went through code and documentation. There is less Python code involved with the CronJobs in this solution and the script structure is much more similar to that of shell scripts, so should be easier to understand for sysadmins in general.
 
 Keeping things simple and deploying the scripts as Kubernetes CronJobs results in simpler code plus it better fits with the Kubernetes/EKS based platform we are working on. If we were spinning up hundreds or thousands of instances at a time Lambda would be better performance wise, but for simple housekeeping scripts CronJobs are good enough.
 
@@ -16,7 +16,7 @@ Keeping things simple and deploying the scripts as Kubernetes CronJobs results i
 
 It consists of two scripts and in its current form runs within a single AWS account, managing snapshots for all RDS instances in that account. As the project I have built this for is only using PostgreSQL database instances it has been developed and tested with these only. The Lambda script solutions I worked with in the past were also written in Python, doing much the same thing with MariaDB and MySQL instances (all scheduling was hardcoded though in this case, which simplified things).
 
-The first script gets a list of all RDS instances and steps through the list, taking snapshots according to whatever schedule has been defined for each RDS instance. I've designed the script to be run on an hourly basis, so logging and what error handling there is, is managed by the hour. It only picks up RDS instances in the AWS account that it is running in, so will need to be deployed in every account.
+The first script gets a list of all RDS instances and steps through the list, taking snapshots according to whatever schedule has been defined for each RDS instance. I've designed the script to be run on an hourly basis so logging and what error handling there is, is managed by the hour. It only picks up RDS instances in the AWS account that it is running in so will need to be deployed in every account.
 
 The second script steps through all manual snapshots and deletes any that are older than an expiry timestamp that in turn was calculated by the first script from a defined retention period and attached to the snapshot. This script can be run at any time, independently of the first script.
 
