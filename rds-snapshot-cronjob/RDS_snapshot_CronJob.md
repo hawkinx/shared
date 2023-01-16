@@ -53,7 +53,7 @@ For these scripts to be useful they need to be run regularly, which means that c
 
 The two scripts are packaged and deployed separately in this current solution; it might not be the most optimal long term, but it gets the job done and is good enough for now.
 
-In the subdirectory for [script](/take_snapshots) that takes the snapshots:
+In the subdirectory for [script](take_snapshots) that takes the snapshots:
 
 ```
 cronjob.yaml
@@ -109,7 +109,7 @@ https://oidc.eks.eu-north-1.amazonaws.com/id/567890ABCDF123457890ABDEF12456
 
 Define an IAM policy with the necessary rights
 
-The file `snapshotpolicy.json` is included with the documentation in the sub-directory [irsa](/irsa); it allows the service account to read information about database instances and snapshots as well as create and delete snapshots and tags. 
+The file `snapshotpolicy.json` is included with the documentation in the sub-directory [irsa](irsa); it allows the service account to read information about database instances and snapshots as well as create and delete snapshots and tags. 
 
 To create the policy using awscli:
 ```
