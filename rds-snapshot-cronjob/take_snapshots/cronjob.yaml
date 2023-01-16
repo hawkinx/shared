@@ -1,0 +1,29 @@
+# Basic cronjob
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rds-take-snapshots
+  namespace: default
+  labels:
+    cronjob: rds-take-snapshots
+spec:
+  # Every hour at 5 minutes over
+  schedule: "5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: cronjob-rds-snapshot
+          containers:
+          - name: rds-take-snapshots
+            # Image name seems to need to be quoted, even though some examples don't do that
+            image: "kahu/rdstakesnapshot:v1.0.2"
+            imagePullPolicy: IfNotPresent
+            # No envars needed so none defined
+            # Nor any args
+          restartPolicy: Never
+---

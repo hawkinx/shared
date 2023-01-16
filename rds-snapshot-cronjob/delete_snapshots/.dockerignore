@@ -1,0 +1,10 @@
+# Some basic 'ignore' stuff
+.venv
+.git
+.cache
+# Skip all markdown files except READMEs
+*.md
+!README*.md
+# Also any yaml or json files so I can keep configuration files here
+*.yaml
+*.json
