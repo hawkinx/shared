@@ -77,7 +77,7 @@ python3 -m pip freeze > requirements.txt
 
 `boto3` is the AWS Python library and `datetime` is a standard Python library. 
 
-The container image that I use as a base is Amazon's latest image for Amazon Linux 2 [amazonlinux/amazonlinux](https://gallery.ecr.aws/amazonlinux/amazonlinux). It is quite a bit (3x) larger than the official Python image, but the ECR vulnerability scan warns about one high level vulnerability and a number of lower level vulnerabilities for the Python image while the image built using Amazon Linux shows none. 
+The container image that I use as a base is Amazon's latest image for *Amazon Linux 2* [amazonlinux/amazonlinux](https://gallery.ecr.aws/amazonlinux/amazonlinux). It is quite a bit (3x) larger than the official Python image, but the ECR vulnerability scan warns about one high level vulnerability and a number of lower level vulnerabilities for the Python image while the image built using Amazon Linux shows none. 
 
 Build and tag the image using the regular `docker build` command
 
@@ -105,7 +105,7 @@ Something like the following will be returned:
 https://oidc.eks.eu-north-1.amazonaws.com/id/567890ABCDF123457890ABDEF12456
 ```
 
-Define an IAM policy with the necessary rights
+Now define an IAM policy with the necessary rights
 
 The file `snapshotpolicy.json` is included with the documentation in the sub-directory [irsa](irsa); it allows the service account to read information about database instances and snapshots as well as create and delete snapshots and tags. 
 
@@ -134,11 +134,11 @@ eksctl create iamserviceaccount --cluster=cluster_name \
   --override-existing-serviceaccounts --approve
 ```
 
-Finally deploy the two cronjobs using the manifest files. 
+Finally deploy the two cronjobs using the manifest files 
 
 ### S3 for extra security
 
-Snapshots are stored on EBS block storage, which is not as reliable as S3 distributed object storage so some sort of regular export of snapshots to S3 is recommended, particularly for business critical data. This could either be added to the existing scripts with some more Python code or run as a separate script and CronJob. 
+Snapshots are stored on EBS block storage, which is not as reliable as S3 distributed object storage so some sort of regular export of snapshots to S3 is recommended, particularly for business critical data. This could either be added to one of the existing scripts with some more Python code or run as a separate script and CronJob. 
 
-The target S3 bucket can be in another AWS account and/or in another AWS region. To protect the snapshots against removal by malicious actors or just deletion in general, S3 bucket Object Lock can be enabled. This provides the same protection as an AWS Backup Vault Lock, but without having to set up a Backup Vault.
+The target S3 bucket can be in another AWS account and/or in another AWS region. To protect the snapshots against removal by malicious actors or just deletion in general, S3 bucket Object Lock can be in addition enabled. This provides the same protection as an AWS Backup Vault Lock, but without having to set up a Backup Vault.
 
