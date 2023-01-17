@@ -24,16 +24,16 @@ There are a number of possible improvements; some are mentioned in this document
 
 #### Defining schedules
 
-Scheduling and retention time are defined per RDS instance using AWS tags; if none are defined, default values of once per day just after midnight UTC and 90 day retention are hard coded in the script taking the snapshots. Snapshots can be disabled by setting a tag also; this means that an active decision not to take any backups has to be made. Using AWS tags has some limitations due to the characters that are available, but it is simple to set up for individual database instances. If different default values are desired, the Python script can be updated. A future addition to the script for the future would be to enable input the default values as environmental variables.
+Scheduling and retention time are defined per RDS instance using AWS tags; if none are defined, default values of once per day just after 0200 UTC and 90 day retention are hard coded in the script taking the snapshots. Snapshots can be disabled by setting a tag also; this means that an active decision not to take any backups has to be made. Using AWS tags has some limitations due to the characters that are available, but it is simple to set up for individual database instances. If different default values are desired, the Python script can be updated. A future addition to the script for the future would be to enable input the default values as environmental variables.
 
 #### Tags
 `snapshot_retention_days`  
-Number of days to retain the snapshot; used to calculate value in snapshot expiry tag  
-E.g. `35`
+Number of days to retain the snapshot; used to calculate value in snapshot expiry tag    
+E.g. `35`, default `90`
 
 `snapshot_schedule`  
 Space separated list of whole hours 00 - 23 to take snapshots (must be '00' '01' not '0' '1' etc)  
-E.g. `00 08 16`
+E.g. `00 08 16`, default `02`
 
 `snapshot_latest`  
 Tracks successful snapshots; content is either the hour of the successful snapshot or 'skipped' if not (mainly occurs when the database is not in a non-available state where snapshots are possible).  
@@ -77,13 +77,11 @@ python3 -m pip freeze > requirements.txt
 
 `boto3` is the AWS Python library and `datetime` is a standard Python library. 
 
-The container image that I use as a base is `python:3.11-slim-bullseye`, an official Python image for Debian 11 Bullseye.
+The container image that I use as a base is Amazon's latest image for Amazon Linux 2 [amazonlinux/amazonlinux](https://gallery.ecr.aws/amazonlinux/amazonlinux). It is quite a bit (3x) larger than the official Python image, but the ECR vulnerability scan warns about one high level vulnerability and a number of lower level vulnerabilities for the Python image while the image built using Amazon Linux shows none. 
 
 Build and tag the image using the regular `docker build` command
 
 Once the images are built they need to be checked in to a container repository; for now I have checked them into my personal Dockerhub account and the manifest files for the CronJobs pull the images from there, but AWS' own repository ECR is probably the best place for them.
-
-Unfortunately AWS ECR vulnerability scanning suggests that the finished container includes a high risk vulnerability related to SQLite. This needs investigating and is next on my list; if it is part of an essential Python package there’s not a lot that can be done though except document it.
 
 ### Deploying the images as Kubernetes CronJobs
 
@@ -97,7 +95,7 @@ I always define my lab EKS clusters with OIDC enabled so that irsa accounts can 
 
 ```
 aws eks describe-cluster --name cluster_name \
-  --query cluster.identity.oidc.issuer" --output text
+  --query cluster.identity.oidc.issuer --output text
 ```
 
 ‘cluster_name’ is the name of the cluster being queried and region needs to be specified if it’s in another region than your default awscli region.

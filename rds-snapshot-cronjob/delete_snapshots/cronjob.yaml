@@ -22,7 +22,7 @@ spec:
           containers:
           - name: rds-clear-snapshots
             # Image name seems to need to be quoted, even though some examples don't do that
-            image: "kahu/rdsdeletesnapshot:v1.0.3"
+            image: "kahu/rdsdeletesnapshot:v1.0.4"
             imagePullPolicy: IfNotPresent
             # No envars needed so none defined
             # Nor any args
