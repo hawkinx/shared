@@ -1,4 +1,4 @@
-
+# Amazon's base image for Amazon Linux 2
 FROM public.ecr.aws/amazonlinux/amazonlinux:2
 
 WORKDIR /app

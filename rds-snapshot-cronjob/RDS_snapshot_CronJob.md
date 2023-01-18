@@ -53,7 +53,7 @@ For these scripts to be useful they need to be run regularly, which means that c
 
 The two scripts are packaged and deployed separately in this current solution; it might not be the most optimal long term, but it gets the job done and is good enough for now.
 
-In the subdirectory for [script](take_snapshots) that takes the snapshots:
+In the [subdirectory](take_snapshots) for script that takes the snapshots:
 
 ```
 cronjob.yaml
@@ -62,7 +62,7 @@ Dockerfile
 requirements.txt
 take_snapshots.py
 ```
-For the second [script](delete_snapshots), the file `take_snapshots.py` is replaced by `delete_snapshots.py`
+For the second [script], the file `take_snapshots.py` is replaced by `delete_snapshots.py` in the [subdirectory](delete_snapshots).
 
 `Dockerfile` contains the information to build the container image and `.dockerignore` which files should be ignored by the container build process. The file `requirements.txt` was generated from inside a Python virtual environment and lists various dependencies of the script. I have not included the virtual environment files in the code repository as there are about 100 Mbyte of files. `.dockerignore` includes the line `.venv` to exclude these files if you set the virtual environment up locally.
 
