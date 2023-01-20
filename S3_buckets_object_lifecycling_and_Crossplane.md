@@ -100,3 +100,14 @@ The AWS documentation suggests possible reasons for replication might be legal o
 Replication configuration can be managed by Crossplane. No proof-of-concept has been carried out, but the example manifest file for buckets contains a good example of how to configure replication, including how to set up and reference a target bucket. 
 
 [Crossplane example manifest for S3 buckets](https://github.com/crossplane-contrib/provider-aws/blob/master/examples/s3/bucket.yaml)
+
+#### Object Locking
+
+S3 buckets can be configured to allow objects contained within them to be protected against deletion or overwriting for a specified time period up to 100 years. This can be for legal compliance, to protect against malicious actors or just to protect against inadvertent deletion of important files.
+
+Object locking needs to be enabled when an S3 bucket is created, but once that has been done all other configuration can be modified. Configuration changes only apply to new objects in the bucket - existing objects retain the retention times etc that applied when they were created - so it's not possible to break the protection by changing the settings.
+
+The upstream Crossplane AWS provider only supports setting the initial flag to enable object locking - configuration needs to be done manually or some other way - while the UXP Crossplane AWS provider provides full support for the various configuration settings.
+
+[S3 Object Lock user guide](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html)
+

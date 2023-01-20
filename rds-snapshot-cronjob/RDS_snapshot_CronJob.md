@@ -4,17 +4,17 @@
 
 RDS snapshots are EBS based snapshots of RDS instances. An individual snapshot will include all changes in the database instance since the previous snapshot, but because of the way they are integrated with EBS storage, each snapshot is also a copy of the entire database instance. Copying a single snapshot to for example an S3 bucket will result in a complete copy of that database instance being copied, not just the changes included in that specific snapshot. Another way of illustrating this is that if all snapshots but the latest are deleted, that snapshot will still be a full copy of the RDS instance at the point in time when the snapshot was taken. As such, they are not the same as old-style incremental backups and should not be confused with them.
 
-The default automated AWS snapshot solution is a bit restricted – you are limited to one snapshot per 24 hours with a maximum retention time of 35 days. If this does not fulfill requirements, so called ‘manual snapshots’ can be used instead. In this situation it is probably best to disable automatic snapshots altogether by setting retention time to 0 days, to save on storage.
+The default automated AWS snapshot solution is a bit restricted – you are limited to one snapshot per 24 hours with a maximum retention time of 35 days. If this does not fulfill requirements, so called ‘manual snapshots’ can be used instead. In this situation it is probably best to disable automatic snapshots altogether by setting retention time to 0 days to save on storage, unless you are using the 'Point in time recovery' ([PITR](https://aws.amazon.com/blogs/storage/point-in-time-recovery-and-continuous-backup-for-amazon-rds-with-aws-backup/)) function. PITR extends the automatic backup service with continuous backup of log files so that databases can be recovered to any given point in time, though latest 5 minutes prior to current time. The maximum retention time is still 35 days however.
 
 ### Python scripts and manual snapshots
 
-Using Python and the boto3 library it is fairly straight forward to deal with snapshot management. In the past I have done this using Lambda scripts, but handing maintenance of these over to colleagues when I left that particular project turned out to be a bit of an problem. They had better AWS certifications that I had, but presumably due to a lack of coding experience their eyes basically just glazed over when we went through code and documentation. There is less Python code involved with the CronJobs in this solution and the script structure is much more similar to that of shell scripts, so should be easier to understand for sysadmins in general.
+Using Python and the boto3 library, it is fairly straight forward to deal with snapshot management. In the past I have done this using Lambda scripts, but handing maintenance of these over to colleagues when I left that particular project turned out to be a bit of an problem. They had better AWS certifications that I had, but presumably due to a lack of coding experience their eyes glazed over when we went through code and documentation, which meant the handover wasn't particularly effective. There is less Python code involved with the CronJobs in this solution and the script structure is much more similar to that of shell scripts, so should be easier to understand for sysadmins in general.
 
-Keeping things simple and deploying the scripts as Kubernetes CronJobs results in simpler code plus it better fits with the Kubernetes/EKS based platform we are working on. If we were spinning up hundreds or thousands of instances at a time Lambda would be better performance wise, but for simple housekeeping scripts CronJobs are good enough.
+Keeping things simple and deploying the scripts as Kubernetes CronJobs results in simpler code plus it fits better with our Kubernetes/EKS based platform. If we were spinning up hundreds or thousands of instances at a time Lambda would be better performance wise, but for simple housekeeping scripts CronJobs are good enough.
 
 ### Simple Boto3/Python/Kubernetes/CronJob solution
 
-It consists of two scripts and in its current form runs within a single AWS account, managing snapshots for all RDS instances in that account. As the project I have built this for is only using PostgreSQL database instances it has been developed and tested with these only. The Lambda script solutions I worked with in the past were also written in Python, doing much the same thing with MariaDB and MySQL instances (all scheduling was hardcoded though in this case, which simplified things).
+It consists of two scripts and in its current form runs within a single AWS account, managing snapshots for all RDS instances in that account. As the project I have built this for is only using PostgreSQL database instances it has been developed for and tested with these only. The Lambda script solutions I worked with in the past were also written in Python, doing much the same thing with MariaDB and MySQL instances. All scheduling was hardcoded though in this case, which simplified things.
 
 The first script gets a list of all RDS instances and steps through the list, taking snapshots according to whatever schedule has been defined for each RDS instance. I've designed the script to be run on an hourly basis so logging and what error handling there is, is managed by the hour. It only picks up RDS instances in the AWS account that it is running in so will need to be deployed in every account.
 
@@ -26,6 +26,8 @@ There are a number of possible improvements; some are mentioned in this document
 
 Scheduling and retention time are defined per RDS instance using AWS tags; if none are defined, default values of once per day just after 0200 UTC and 90 day retention are hard coded in the script taking the snapshots. Snapshots can be disabled by setting a tag also; this means that an active decision not to take any backups has to be made. Using AWS tags has some limitations due to the characters that are available, but it is simple to set up for individual database instances. If different default values are desired, the Python script can be updated. A future addition to the script for the future would be to enable input the default values as environmental variables.
 
+One important point to remember is that the schedule string uses two characters for each hour, as described below. This solution reduces the amount of code that needs to be maintained and executed, and as the schedule strings to be are managed by scripts/templates rather than users it's reasonable to assume that anyone creating the scripts/templates is able to RTFM, unlike most regular users.
+
 #### Tags
 `snapshot_retention_days`  
 Number of days to retain the snapshot; used to calculate value in snapshot expiry tag    
@@ -36,7 +38,7 @@ Space separated list of whole hours 00 - 23 to take snapshots (must be '00' '01'
 E.g. `00 08 16`, default `02`
 
 `snapshot_latest`  
-Tracks successful snapshots; content is either the hour of the successful snapshot or 'skipped' if not (mainly occurs when the database is not in a non-available state where snapshots are possible).  
+Tracks successful snapshots; content is either the hour of the successful snapshot or 'skipped' if not (mainly occurs when the database is not in a non-available state where snapshots are possible). 
 Set by script
 
 `snapshot_never`  
@@ -46,6 +48,7 @@ Disables snapshots if it exists; tag content is ignored as are all other tags so
 Attached to each individual snapshot and read by the script that cleans up snapshots; created by the script and can be deleted to disable the clean-up script for a specific snapshot  
 Set by script
 
+Some basic error handling is included for the `snapshot_retention_days` tag; a Python method checks if the string value can be converted to an integer and if not, the default retention days value is used to ensure that a snapshot is taken. In the case of the `snapshot_schedule` tag, anything not found in the `00`, `01`...`23` sequence is simply ignored. Other tag values are either ignored or created by a script.
 
 #### Packaging the scripts into container images
 
@@ -141,4 +144,11 @@ Finally deploy the two cronjobs using the manifest files
 Snapshots are stored on EBS block storage, which is not as reliable as S3 distributed object storage so some sort of regular export of snapshots to S3 is recommended, particularly for business critical data. This could either be added to one of the existing scripts with some more Python code or run as a separate script and CronJob. 
 
 The target S3 bucket can be in another AWS account and/or in another AWS region. To protect the snapshots against removal by malicious actors or just deletion in general, S3 bucket Object Lock can be in addition enabled. This provides the same protection as an AWS Backup Vault Lock, but without having to set up a Backup Vault.
+
+### Enhancements
+
+Various bits I'd like to add in the future
+
+- Exception handling in the loops in particular. Currently if there is a failure within the main loop in both scripts, the entire script dies. Errors should be caught in a way that allows the loop to continue.
+- Copy snapshots (all or selected) to an S3 bucket. Object Locking, cross-regional replication and S3 object lifecycling can all be managed at the bucket level.
 
