@@ -48,7 +48,7 @@ Disables snapshots if it exists; tag content is ignored as are all other tags so
 Attached to each individual snapshot and read by the script that cleans up snapshots; created by the script and can be deleted to disable the clean-up script for a specific snapshot  
 Set by script
 
-Some basic error handling is included for the `snapshot_retention_days` tag; a Python method checks if the string value can be converted to an integer and if not, the default retention days value is used to ensure that a snapshot is taken. In the case of the `snapshot_schedule` tag, anything not found in the `00`, `01`...`23` sequence is simply ignored. Other tag values are either ignored or created by a script.
+Some basic error handling is included for the `snapshot_retention_days` tag; a Python method checks if the string value can be converted to an integer and if not, the default retention days value is used to ensure that a snapshot is taken. In the case of the `snapshot_schedule` tag, anything not found in the `00`, `01`...`23` sequence is simply ignored. Values for other tags are either ignored or are created by a script.
 
 #### Packaging the scripts into container images
 
