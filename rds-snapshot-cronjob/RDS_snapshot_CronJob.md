@@ -2,9 +2,21 @@
 
 ### Background
 
-RDS snapshots are EBS based snapshots of RDS instances. An individual snapshot will include all changes in the database instance since the previous snapshot, but because of the way they are integrated with EBS storage, each snapshot is also a copy of the entire database instance. Copying a single snapshot to for example an S3 bucket will result in a complete copy of that database instance being copied, not just the changes included in that specific snapshot. Another way of illustrating this is that if all snapshots but the latest are deleted, that snapshot will still be a full copy of the RDS instance at the point in time when the snapshot was taken. As such, they are not the same as old-style incremental backups and should not be confused with them.
+The solution described here is one where Python scripts are run as Kubernetes CronJobs to manage manual snapshots. I think AWS Backup *Backup as a Service* is capable of doing this also, but our current deployment setup does not support configuring AWS Backup so we needed another solution for retention times longer than the max. 35 days available in the RDS automated backup service. We are already using EKS clusters in all of our environments, so it made sense to use Kubernetes CronJobs.
 
-The default automated AWS snapshot solution is a bit restricted – you are limited to one snapshot per 24 hours with a maximum retention time of 35 days. If this does not fulfill requirements, so called ‘manual snapshots’ can be used instead. In this situation it is probably best to disable automatic snapshots altogether by setting retention time to 0 days to save on storage, unless you are using the 'Point in time recovery' ([PITR](https://aws.amazon.com/blogs/storage/point-in-time-recovery-and-continuous-backup-for-amazon-rds-with-aws-backup/)) function. PITR extends the automatic backup service with continuous backup of log files so that databases can be recovered to any given point in time, though latest 5 minutes prior to current time. The maximum retention time is still 35 days however.
+Note that this is very much a work in progress and not all of the files are in sync as far as documentation, comments or functions are concerned. 
+
+#### RDS Snapshot storage
+The information on RDS snapshots can be a little confusing, so a first little background.
+
+Snapshots of RDS instances are stored using S3 object storage but are not visible - as with the rest of RDS, underlying services are hidden. Also unlike regular S3 storage, the RDS S3 storage seems to be able to function like block storage and automated backups are both incremental (only changes are stored) and full (any backup can be used to restore a full database even if all other backups have been deleted). One explanation I have seen was that each backup/snapshot stores database changes along with pointers to data blocks in previous backups. This may or may not be true, but functionally it works like this.
+
+As far as I have been able to ascertain, this only applies to automated backups and all manual backups (scripted or otherwise; anything not handled by the automated backup subsystem) are full backups.
+
+#### Point in time recovery
+RDS supports the AWS PITR 'Point in time recovery' ([PITR](https://aws.amazon.com/blogs/storage/point-in-time-recovery-and-continuous-backup-for-amazon-rds-with-aws-backup/)), which extends the automatic backup service with continuous backup of log and transaction files so that databases can be recovered to any given point in time, within the configured retention period. PITR is not fully available until around 5 minutes after the current time, which is presumably related synchronisation of data across availability zone in the S3 storage. 
+
+One suggestion/recommendation I have seen is to use automated backups with PITR enabled for the short term - 7 days was suggested as that is RDS default - and manual snapshots such as those created by this solution, for longer term backup.
 
 ### Python scripts and manual snapshots
 
