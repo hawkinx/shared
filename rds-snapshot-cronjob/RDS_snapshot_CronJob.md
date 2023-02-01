@@ -36,7 +36,7 @@ The second script steps through all manual snapshots and deletes any that are ol
 
 The third script, the latest one `cronjob_snapshot`, is a modified version of the first script. The part related to scheduling has been removed so all scheduling is now handled by the CronJob itself. The RDS instance to be backed up has to be specified using the environmental variable `RDS_INSTANCE_ID` - the script exits if it is not set and it is possible to set the AWS Region using the environmental variable `AWS_REGION`, though in this case a default value of `eu-north-1`is used otherwise. The environmental values are set in the manifest file that is used to deploy the CronJob, `cronjob.yaml` in the script [subdirectory](cronjob_snapshots). Scheduling is also defined in that manifest file, in the usual way. The tags for to set snapshot retention days and to disable snapshots are retained; in both cases to give a sort of compatibility between scripts. 
 
-Unlike the original snapshot script, this third script does not include tracking of success/failure of snapshots so I plan to add a so-called RDS 'Waiter' function 
+Unlike the original snapshot script, this third script does not include tracking of success/failure of snapshots so I plan to add a so-called RDS 'Waiter' function so that it will wait if the RDS instances isn't in an available state.
 
 #### Defining schedules
 
