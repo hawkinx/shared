@@ -1,0 +1,33 @@
+# Basic cronjob
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rds-snapshot
+  namespace: default
+  labels:
+    cronjob: rds-snapshot
+spec:
+  # Every day at 0205
+  schedule: "5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: cronjob-rds-snapshot
+          containers:
+          - name: rds-snapshot
+            # Image name seems to need to be quoted, even though some examples I've seen don't do that
+            image: "kahu/rdssnapshot:v1.0.1"
+            imagePullPolicy: IfNotPresent
+            # A couple of environmental variables
+            env:
+            - name: RDS_INSTANCE_ID # Name of RDS instance to snapshot
+              value: "testdb" # My test example; if it doesn't exist the script exits
+            - name: AWS_REGION # Region; only eu-north-1 and eu-central-1 are currently permitted
+              value: "eu-north-1" # If missing, defaults to eu-north-1
+          restartPolicy: Never
+---

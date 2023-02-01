@@ -4,7 +4,9 @@
 
 The solution described here is one where Python scripts are run as Kubernetes CronJobs to manage manual snapshots. I think AWS Backup *Backup as a Service* is capable of doing this also, but our current deployment setup does not support configuring AWS Backup so we needed another solution for retention times longer than the max. 35 days available in the RDS automated backup service. We are already using EKS clusters in all of our environments, so it made sense to use Kubernetes CronJobs.
 
-Note that this is very much a work in progress and not all of the files are in sync as far as documentation, comments or functions are concerned. 
+Note that this is very much a work in progress and not all of the files are in sync as far as documentation, comments or functions are concerned.
+
+A third script has now been added; the background to this one is that there is a move toward sharing database instances to reduce costs (very sensible in my opinion), so I've copied and adapted the script that manages snapshots for all RDS instances to one that creates snapshots for a single specified RDS instance. With this the scheduling is handled entirely by the CronJob, unlike the hybrid and slightly ugly solution I created for the original script. This script depends on the same service account as the other scripts and shares a couple of tags; more details below.
 
 #### RDS Snapshot storage
 The information on RDS snapshots can be a little confusing, so a first little background.
@@ -16,7 +18,7 @@ As far as I have been able to ascertain, this only applies to automated backups 
 #### Point in time recovery
 RDS supports the AWS PITR 'Point in time recovery' ([PITR](https://aws.amazon.com/blogs/storage/point-in-time-recovery-and-continuous-backup-for-amazon-rds-with-aws-backup/)), which extends the automatic backup service with continuous backup of log and transaction files so that databases can be recovered to any given point in time, within the configured retention period. PITR is not fully available until around 5 minutes after the current time, which is presumably related synchronisation of data across availability zone in the S3 storage. 
 
-One suggestion/recommendation I have seen is to use automated backups with PITR enabled for the short term - 7 days was suggested as that is RDS default - and manual snapshots such as those created by this solution, for longer term backup.
+One suggestion/recommendation I have seen is to use automated backups with PITR enabled for the short term - 7 days was suggested as that is RDS default - and manual snapshots such as those created by this solution, for longer term backup. 
 
 ### Python scripts and manual snapshots
 
@@ -32,7 +34,7 @@ The first script gets a list of all RDS instances and steps through the list, ta
 
 The second script steps through all manual snapshots and deletes any that are older than an expiry timestamp that in turn was calculated by the first script from a defined retention period and attached to the snapshot. This script can be run at any time, independently of the first script.
 
-There are a number of possible improvements; some are mentioned in this documentation, most are not. The solution does what it needs to do already so is good enough for now.
+The third script, the latest one `cronjob_snapshot`, is a modified version of the first script. The part related to scheduling has been removed so all scheduling is now handled by the CronJob itself. The RDS instance to be backed up has to be specified using the environmental variable `RDS_INSTANCE_ID` - the script exits if it is not set and it is possible to set the AWS Region using the environmental variable `AWS_REGION`, though in this case a default value of `eu-north-1`is used otherwise. The environmental values are set in the manifest file that is used to deploy the CronJob, `cronjob.yaml` in the script [subdirectory](cronjob_snapshots). Scheduling is also defined in that manifest file, in the usual way. The tags for to set snapshot retention days and to disable snapshots are retained; in both cases to give a sort of compatibility between scripts. 
 
 #### Defining schedules
 
