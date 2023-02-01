@@ -1,4 +1,4 @@
-# Basic cronjob
+# Basic manifest file for CronJob
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -9,7 +9,7 @@ metadata:
     cronjob: rds-snapshot
 spec:
   # Every day at 0205
-  schedule: "5 * * * *"
+  schedule: "5 2 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1

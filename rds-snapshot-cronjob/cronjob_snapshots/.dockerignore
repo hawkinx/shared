@@ -6,5 +6,4 @@
 *.md
 !README*.md
 # Also any yaml or json files so I can safely store various configuration files here
-*.yaml
 *.json

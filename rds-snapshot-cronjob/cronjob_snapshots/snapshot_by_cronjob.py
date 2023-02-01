@@ -120,3 +120,4 @@ for instance in rds_instances['DBInstances']:
         print('Database %s is not available - will try again later' %(dbInstanceName))
   except Exception as e:
     print('Exception occurred for RDS instance %s : %s' %(instance['DBInstanceIdentifier'], e))
+

@@ -1,4 +1,4 @@
-# Amazon's base image for Amazon Linux 2
+# Amazon's base image for Amazon Linux 2; a bit on the big side, but ECR flags it as free from issues
 FROM public.ecr.aws/amazonlinux/amazonlinux:2
 
 WORKDIR /app
